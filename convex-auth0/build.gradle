@@ -1,0 +1,108 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    id 'signing'
+}
+
+android {
+    namespace 'dev.convex.android.auth0'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    publishing {
+        multipleVariants {
+            allVariants()
+            withJavadocJar()
+        }
+    }
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'dev.convex'
+            artifactId = 'android-convex-auth0'
+            version = '0.1.0'
+            pom {
+                name = 'Convex Auth0 Support for Android'
+                description = 'Convex Android client library for integrating Auth0'
+                url = 'https://www.convex.dev/'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = 'Christian Wyglendowski'
+                        email = 'christian@convex.dev'
+                        organization = 'Convex, Inc.'
+                        organizationUrl = 'https://www.convex.dev/'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://example.com/unreleased.git'
+                    url = 'https://www.convex.dev/'
+                }
+            }
+
+            afterEvaluate {
+                from components.release
+            }
+
+            repositories {
+                maven {
+                    name = 'zipRepo'
+                    url = "${project.layout.buildDirectory.asFile.get().path}/repo"
+                }
+            }
+        }
+    }
+
+}
+
+signing {
+    sign publishing.publications
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+    implementation libs.auth0
+    testImplementation libs.kotlinx.coroutines.test
+    testImplementation(libs.strikt.core)
+    implementation(libs.convexmobile) {
+        artifact {
+            type = 'aar'
+        }
+    }
+}
