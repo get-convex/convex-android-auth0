@@ -100,9 +100,5 @@ dependencies {
     implementation libs.auth0
     testImplementation libs.kotlinx.coroutines.test
     testImplementation(libs.strikt.core)
-    implementation(libs.convexmobile) {
-        artifact {
-            type = 'aar'
-        }
-    }
+    implementation libs.convexmobile
 }
