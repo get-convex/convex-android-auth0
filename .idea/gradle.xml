@@ -4,12 +4,26 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/../convex-mobile/android" name="Convex for Android">
+                <projects>
+                  <project path="$PROJECT_DIR$/../convex-mobile/android" />
+                  <project path="$PROJECT_DIR$/../convex-mobile/android/convexmobile" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/convex-auth0" />
+            <option value="$PROJECT_DIR$/../convex-mobile/android" />
+            <option value="$PROJECT_DIR$/../convex-mobile/android/convexmobile" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

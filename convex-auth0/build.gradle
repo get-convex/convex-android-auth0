@@ -38,6 +38,8 @@ android {
     }
 }
 
+tasks.build.dependsOn(gradle.includedBuild('convex-mobile').task(':convexmobile:build'))
+
 publishing {
     publications {
         release(MavenPublication) {

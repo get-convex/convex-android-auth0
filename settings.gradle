@@ -16,9 +16,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
     }
 }
 
 rootProject.name = "convex-android-auth0"
 include ':convex-auth0'
+includeBuild('../convex-mobile/android') {
+    name = 'convex-mobile'
+}
