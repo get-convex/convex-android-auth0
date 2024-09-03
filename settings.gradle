@@ -21,6 +21,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "convex-android-auth0"
 include ':convex-auth0'
-includeBuild('../convex-mobile/android') {
-    name = 'convex-mobile'
+if (new File(rootDir, '../convex-mobile').exists()) {
+    includeBuild('../convex-mobile/android') {
+        name = 'convex-mobile'
+        dependencySubstitution {
+            substitute(module("dev.convex:android-convexmobile")).using(project(":convexmobile"))
+        }
+    }
 }

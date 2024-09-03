@@ -2,7 +2,12 @@ package dev.convex.android.auth0
 
 import android.content.Context
 import com.auth0.android.Auth0
+import com.auth0.android.authentication.AuthenticationAPIClient
 import com.auth0.android.authentication.AuthenticationException
+import com.auth0.android.authentication.storage.CredentialsManagerException
+import com.auth0.android.authentication.storage.SecureCredentialsManager
+import com.auth0.android.authentication.storage.SharedPreferencesStorage
+import com.auth0.android.authentication.storage.Storage
 import com.auth0.android.callback.Callback
 import com.auth0.android.provider.WebAuthProvider
 import com.auth0.android.result.Credentials
@@ -11,21 +16,33 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Enables a [ConvexClientWithAuth] to use [Auth0](https://auth0.com/).
+ * Enables a `ConvexClientWithAuth` to use [Auth0](https://auth0.com/).
  *
  * Successful logins provide Auth0's [Credentials] for the authenticated user. They can be used to
  * customize the app experience for your users.
  *
+ * @param context an Android [Context]
  * @param clientId the Auth0 client ID configured for your application
  * @param domain the Auth0 domain configured for your application
  * @param scheme the scheme used in your Auth0 login and logout callback URLs
+ * @param enableCachedLogins whether to use Auth0's [SecureCredentialsManager] for caching credentials
+ * @param credentialsStorage optional [Storage] implementation for credentials; defaults to [SharedPreferencesStorage]
  */
 class Auth0Provider(
+    context: Context,
     clientId: String,
     domain: String,
     private val scheme: String = "app",
+    enableCachedLogins: Boolean = false,
+    credentialsStorage: Storage? = null
 ) : AuthProvider<Credentials> {
     private val auth0 = Auth0(clientId, domain)
+    private val credentialsManager: SecureCredentialsManager? =
+        if (enableCachedLogins) SecureCredentialsManager(
+            context,
+            AuthenticationAPIClient(auth0),
+            credentialsStorage ?: SharedPreferencesStorage(context)
+        ) else null
 
     override suspend fun login(context: Context): Result<Credentials> = suspendCoroutine { cont ->
         WebAuthProvider.login(auth0).withScheme(scheme)
@@ -35,9 +52,22 @@ class Auth0Provider(
                 }
 
                 override fun onSuccess(result: Credentials) {
+                    credentialsManager?.saveCredentials(result)
                     cont.resume(Result.success(result))
                 }
             })
+    }
+
+    override suspend fun loginFromCache(): Result<Credentials> {
+        if (credentialsManager == null) {
+            return Result.failure(CachedLoginsNotEnabledError())
+        }
+        try {
+            val credentials = credentialsManager.awaitCredentials()
+            return Result.success(credentials)
+        } catch (e: CredentialsManagerException) {
+            return Result.failure(e)
+        }
     }
 
     override suspend fun logout(context: Context): Result<Void?> = suspendCoroutine { cont ->
@@ -55,3 +85,9 @@ class Auth0Provider(
 
     override fun extractIdToken(authResult: Credentials): String = authResult.idToken
 }
+
+/**
+ * A developer error thrown when attempting to use [AuthProvider.loginFromCache] when logging in
+ * using cached credentials hasn't been enabled.
+ */
+class CachedLoginsNotEnabledError : Exception()
