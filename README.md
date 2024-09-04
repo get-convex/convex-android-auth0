@@ -9,6 +9,19 @@ prompted to authenticate via a browser window and then seamlessly returned to yo
 
 ## Getting Started
 
+First of all, if you haven't started a Convex application yet, head over to the
+[Convex Android quickstart](https://docs.convex.dev/quickstart/android) to get the basics down. It
+will get you up and running with a Convex dev deployment and a basic Android application that
+communicates with it.
+
+Once you have a working Convex + Android application, you're ready to take the following steps to
+integrate with Auth0.
+
+> [!NOTE]
+> There are a lot of moving parts to getting auth set up. If you run into trouble check out the
+> [Convex auth docs](https://docs.convex.dev/auth) and join our 
+> [Discord community](https://convex.dev/community) to get help.
+
 1. Follow the first two steps of the official
    [Auth0 Android quickstart](https://auth0.com/docs/quickstart/native/android) ("Configure Auth0"
    and "Install the Auth0 Android SDK").
@@ -65,7 +78,8 @@ prompted to authenticate via a browser window and then seamlessly returned to yo
 
 At this point you should be able to use the `login` and `logout` methods on the client to perform
 authentication with Auth0. Your Convex backend will receive the ID token from Auth0 and you'll be
-able to use authentication details in your backend functions.
+able to
+[use authentication details in your backend functions](https://docs.convex.dev/auth/functions-auth).
 
 ### Reacting to authentication state
 
@@ -73,8 +87,10 @@ The `ConvexClientWithAuth.authState` field is a `Flow` that contains the latest 
 from the client. You can setup your UI to react to new `authState` values and show the appropriate
 screens (e.g. login/logout buttons, loading screens, authenticated content).
 
-The `AuthState.Authenticated` value will contain the `Credentials` object received from Auth0 and
-you can use the data that it contains to customize the user experience in your app.
+The `AuthState.Authenticated` value will contain the 
+[`Credentials`](https://javadoc.io/doc/com.auth0.android/auth0/latest/auth0/com.auth0.android.result/-credentials/index.html)
+object received from Auth0 and you can use the data that it contains to customize the user
+experience in your app.
 
 ### Auto sign-in
 
