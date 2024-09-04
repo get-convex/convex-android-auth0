@@ -45,7 +45,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'dev.convex'
             artifactId = 'android-convex-auth0'
-            version = '0.2.0'
+            version = '0.2.1'
             pom {
                 name = 'Convex Auth0 Support for Android'
                 description = 'Convex Android client library for integrating Auth0'
