@@ -9,11 +9,14 @@ import com.auth0.android.authentication.storage.SecureCredentialsManager
 import com.auth0.android.authentication.storage.SharedPreferencesStorage
 import com.auth0.android.authentication.storage.Storage
 import com.auth0.android.callback.Callback
+import com.auth0.android.jwt.JWT
 import com.auth0.android.provider.WebAuthProvider
 import com.auth0.android.result.Credentials
 import dev.convex.android.AuthProvider
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+
+private const val SCOPES = "openid profile email offline_access"
 
 /**
  * Enables a `ConvexClientWithAuth` to use [Auth0](https://auth0.com/).
@@ -46,6 +49,7 @@ class Auth0Provider(
 
     override suspend fun login(context: Context): Result<Credentials> = suspendCoroutine { cont ->
         WebAuthProvider.login(auth0).withScheme(scheme)
+            .withScope(SCOPES)
             .start(context, object : Callback<Credentials, AuthenticationException> {
                 override fun onFailure(error: AuthenticationException) {
                     cont.resume(Result.failure(error))
@@ -63,7 +67,24 @@ class Auth0Provider(
             return Result.failure(CachedLoginsNotEnabledError())
         }
         try {
-            val credentials = credentialsManager.awaitCredentials()
+            var credentials = credentialsManager.awaitCredentials()
+            // Convex applications share the ID token with the backend so both the client app and
+            // backend can share the authenticated state. Auth0 only considers credentials expired
+            // when the access token expires. Convex considers them expired when the ID token
+            // expires. To ensure that we're only passing unexpired ID tokens to the backend, we
+            // check the ID token expiration and force a token refresh if it is expired. Here are
+            // a couple of links to reference:
+            // * https://docs.convex.dev/auth/auth0#under-the-hood
+            // * https://github.com/auth0/Auth0.Android/pull/572
+            val idToken = JWT(credentials.idToken)
+            if (idToken.isExpired(0)) {
+                credentials = credentialsManager.awaitCredentials(
+                    scope = SCOPES,
+                    minTtl = 0,
+                    parameters = emptyMap(),
+                    forceRefresh = true
+                )
+            }
             return Result.success(credentials)
         } catch (e: CredentialsManagerException) {
             return Result.failure(e)

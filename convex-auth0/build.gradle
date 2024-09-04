@@ -103,4 +103,5 @@ dependencies {
     testImplementation libs.kotlinx.coroutines.test
     testImplementation(libs.strikt.core)
     implementation libs.convexmobile
+    implementation libs.jwtdecode
 }
