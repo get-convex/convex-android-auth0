@@ -44,7 +44,7 @@ integrate with Auth0.
 
     ```kotlin
         // In the dependencies section of your app-level build.gradle.kts file ...
-        implementation("dev.convex:android-convex-auth0:0.2.0")
+        implementation("dev.convex:android-convex-auth0:0.2.1")
     ```
 
 5. Be sure to sync Gradle after adding that dependency. Now you should be able to import and use
