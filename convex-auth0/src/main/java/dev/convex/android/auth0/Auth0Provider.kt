@@ -28,7 +28,6 @@ private const val SCOPES = "openid profile email offline_access"
  * @param clientId the Auth0 client ID configured for your application
  * @param domain the Auth0 domain configured for your application
  * @param scheme the scheme used in your Auth0 login and logout callback URLs
- * @param enableCachedLogins whether to use Auth0's [SecureCredentialsManager] for caching credentials
  * @param credentialsStorage optional [Storage] implementation for credentials; defaults to [SharedPreferencesStorage]
  */
 class Auth0Provider(
@@ -36,18 +35,19 @@ class Auth0Provider(
     clientId: String,
     domain: String,
     private val scheme: String = "app",
-    enableCachedLogins: Boolean = false,
     credentialsStorage: Storage? = null
 ) : AuthProvider<Credentials> {
     private val auth0 = Auth0(clientId, domain)
-    private val credentialsManager: SecureCredentialsManager? =
-        if (enableCachedLogins) SecureCredentialsManager(
-            context,
-            AuthenticationAPIClient(auth0),
-            credentialsStorage ?: SharedPreferencesStorage(context)
-        ) else null
+    private val credentialsManager = SecureCredentialsManager(
+        context,
+        AuthenticationAPIClient(auth0),
+        credentialsStorage ?: SharedPreferencesStorage(context)
+    )
 
-    override suspend fun login(context: Context): Result<Credentials> = suspendCoroutine { cont ->
+    override suspend fun login(
+        context: Context,
+        onIdToken: (String?) -> Unit
+    ): Result<Credentials> = suspendCoroutine { cont ->
         WebAuthProvider.login(auth0).withScheme(scheme)
             .withScope(SCOPES)
             .start(context, object : Callback<Credentials, AuthenticationException> {
@@ -56,16 +56,13 @@ class Auth0Provider(
                 }
 
                 override fun onSuccess(result: Credentials) {
-                    credentialsManager?.saveCredentials(result)
+                    credentialsManager.saveCredentials(result)
                     cont.resume(Result.success(result))
                 }
             })
     }
 
-    override suspend fun loginFromCache(): Result<Credentials> {
-        if (credentialsManager == null) {
-            return Result.failure(CachedLoginsNotEnabledError())
-        }
+    override suspend fun loginFromCache(onIdToken: (String?) -> Unit): Result<Credentials> {
         try {
             var credentials = credentialsManager.awaitCredentials()
             // Convex applications share the ID token with the backend so both the client app and
@@ -106,9 +103,3 @@ class Auth0Provider(
 
     override fun extractIdToken(authResult: Credentials): String = authResult.idToken
 }
-
-/**
- * A developer error thrown when attempting to use [AuthProvider.loginFromCache] when logging in
- * using cached credentials hasn't been enabled.
- */
-class CachedLoginsNotEnabledError : Exception()

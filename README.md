@@ -44,7 +44,7 @@ integrate with Auth0.
 
     ```kotlin
         // In the dependencies section of your app-level build.gradle.kts file ...
-        implementation("dev.convex:android-convex-auth0:0.2.1")
+        implementation("dev.convex:android-convex-auth0:0.3.0")
     ```
 
 5. Be sure to sync Gradle after adding that dependency. Now you should be able to import and use
@@ -95,20 +95,7 @@ experience in your app.
 ### Auto sign-in
 
 If you would like your users to be able to launch your app directly into a signed in state after an
-initial authentication, you can enable that via a flag on the `Auth0Provider` constructor.
-
-```kotlin
-val auth0 = Auth0Provider(
-    // Previous values for context, clientId, domain and scheme go here ...
-    enableCachedLogins = true,
-)
-```
-
-This uses Auth0's
-[`SecureCredentialsManager`](https://javadoc.io/doc/com.auth0.android/auth0/latest/auth0/com.auth0.android.authentication.storage/-secure-credentials-manager/index.html)
-behind the scenes to store tokens after successful authentication and to retrieve previously stored
-tokens.
-
-With `enableCachedLogins` you can call the `ConvexClientWithAuth.loginFromCache` method and it will
-automatically sign the user back in if prior valid credentials are available. It will update the
-`authState` flow just like calls to `login` and `logout` do for interactive operations.
+initial authentication (with potentially refreshed credentials), you can call the 
+`ConvexClientWithAuth.loginFromCache` method and it will automatically sign the user back in if
+prior valid credentials are available. It will update the `authState` flow just like calls to
+`login` and `logout` do for interactive operations.
