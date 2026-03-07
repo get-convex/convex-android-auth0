@@ -96,6 +96,7 @@ class Auth0Provider(
                 }
 
                 override fun onSuccess(result: Void?) {
+                    credentialsManager?.clearCredentials()
                     cont.resume(Result.success(result))
                 }
             })
